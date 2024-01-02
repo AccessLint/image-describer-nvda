@@ -1,6 +1,6 @@
 import sys
 import os
-module_path = os.path.abspath(os.path.dirname(__file__))
+module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "vendor"))
 sys.path.append(module_path)
 
 import pyscreeze
