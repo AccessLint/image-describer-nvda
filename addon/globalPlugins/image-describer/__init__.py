@@ -3,17 +3,17 @@ import os
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "vendor"))
 sys.path.append(module_path)
 
+import json
 import pyscreeze
 import api
 import base64
 import globalPluginHandler
 import os
-import requests
+import urllib.request
 import tempfile
 import threading
 import tones
 import ui
-
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def encode_image(self, image_path):
@@ -22,15 +22,13 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     def describe_image(self, file):
         base64_image = self.encode_image(file)
-        headers = {
-            "Content-Type": "application/json",
-            "X-Image-Describer-Client": "NVDA",
-        }
         payload = {"srcUrl": f"data:image/jpeg;base64,{base64_image}", "quick": False}
-        response = requests.post(
-            "https://describe.accesslint.com/api/v2/descriptions",
-            headers=headers, json=payload, timeout=15)
-        result = response.json()
+        data = json.dumps(payload).encode("utf-8")
+        request = urllib.request.Request("https://describe.accesslint.com/api/v2/descriptions", method="POST", data=data)
+        request.add_header('Content-Type', 'application/json')
+        request.add_header('X-Image-Describer-Client', 'NVDA')
+        response = urllib.request.urlopen(request, timeout=15).read()
+        result = json.loads(response.decode("utf-8"))
         content = result["description"]
         ui.message(content)
         os.unlink(file)
